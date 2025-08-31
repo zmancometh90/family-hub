@@ -3,6 +3,8 @@ package com.github.zmancometh90.familyhub.service;
 import com.github.zmancometh90.familyhub.models.User;
 import com.github.zmancometh90.familyhub.models.UserDTO;
 import com.github.zmancometh90.familyhub.models.UserRequest;
+import com.github.zmancometh90.familyhub.models.PasswordChangeRequest;
+import com.github.zmancometh90.familyhub.models.AdminPasswordChangeRequest;
 import com.github.zmancometh90.familyhub.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -94,5 +96,62 @@ public class UserService {
             throw new RuntimeException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    public void changePassword(UUID userId, PasswordChangeRequest request) {
+        Optional<User> foundUser = userRepository.findById(userId);
+        
+        if (foundUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = foundUser.get();
+        
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Validate new password
+        if (request.getNewPassword() == null || request.getNewPassword().trim().length() < 6) {
+            throw new RuntimeException("New password must be at least 6 characters long");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    public void adminChangePassword(UUID adminId, AdminPasswordChangeRequest request) {
+        // Verify admin user exists and has admin role
+        Optional<User> adminUser = userRepository.findById(adminId);
+        if (adminUser.isEmpty()) {
+            throw new RuntimeException("Admin user not found");
+        }
+
+        if (adminUser.get().getRole() != User.Role.ADMIN) {
+            throw new RuntimeException("Only administrators can change other users' passwords");
+        }
+
+        // Verify admin password
+        if (!passwordEncoder.matches(request.getAdminPassword(), adminUser.get().getPassword())) {
+            throw new RuntimeException("Admin password is incorrect");
+        }
+
+        // Find target user
+        Optional<User> targetUser = userRepository.findById(request.getTargetUserId());
+        if (targetUser.isEmpty()) {
+            throw new RuntimeException("Target user not found");
+        }
+
+        // Validate new password
+        if (request.getNewPassword() == null || request.getNewPassword().trim().length() < 6) {
+            throw new RuntimeException("New password must be at least 6 characters long");
+        }
+
+        // Update target user's password
+        User user = targetUser.get();
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

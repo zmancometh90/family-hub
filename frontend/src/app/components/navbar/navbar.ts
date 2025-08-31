@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -13,6 +13,7 @@ import { UserDTO } from '../../models/user.model';
 })
 export class NavbarComponent implements OnInit {
   currentUser: UserDTO | null = null;
+  showUserMenu = false;
 
   constructor(
     private authService: AuthService,
@@ -32,8 +33,12 @@ export class NavbarComponent implements OnInit {
     this.router.navigate(['/dashboard']);
   }
 
-  navigateToAddEvent(): void {
-    this.router.navigate(['/events/new']);
+  navigateToDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  navigateToGroceryList(): void {
+    this.router.navigate(['/grocery-list']);
   }
 
   navigateToChoreList(): void {
@@ -53,6 +58,7 @@ export class NavbarComponent implements OnInit {
   }
 
   logout(): void {
+    this.showUserMenu = false;
     this.authService.logout();
     this.router.navigate(['/login']);
   }
@@ -63,5 +69,33 @@ export class NavbarComponent implements OnInit {
 
   isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
+  }
+
+  toggleUserMenu(): void {
+    this.showUserMenu = !this.showUserMenu;
+  }
+
+  openUserSettings(): void {
+    this.showUserMenu = false;
+    this.router.navigate(['/settings']);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const userMenu = target.closest('.user-menu');
+    if (!userMenu && this.showUserMenu) {
+      this.showUserMenu = false;
+    }
+  }
+
+  // Avatar functionality
+  getUserInitial(): string {
+    if (!this.currentUser) return 'U';
+    return this.currentUser.name.charAt(0).toUpperCase();
+  }
+
+  getUserAvatar(): string {
+    return this.currentUser?.avatar || this.getUserInitial();
   }
 }

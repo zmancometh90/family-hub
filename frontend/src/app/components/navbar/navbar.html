@@ -1,53 +1,88 @@
 <nav class="navbar" *ngIf="isLoggedIn()">
   <div class="navbar-container">
+    <!-- Logo and Brand -->
     <div class="navbar-brand">
-      <button type="button" class="brand-button" (click)="navigateToHome()">
-        <span class="brand-icon">🏠</span>
-        <span class="brand-text">Family Hub</span>
+      <button type="button" class="brand-button" (click)="navigateToHome()" title="Go to dashboard">
+        <img src="logo.svg" alt="FamilyHub" class="brand-logo">
+        <span class="brand-text">FamilyHub</span>
       </button>
     </div>
 
-    <div class="navbar-menu">
-      <div class="navbar-user">
-        <span class="welcome-text" *ngIf="currentUser">
-          Welcome, {{ currentUser.name }}
-        </span>
-        <span class="user-role" *ngIf="currentUser">
-          ({{ isAdmin() ? 'Admin' : 'User' }})
-        </span>
-      </div>
+    <!-- Navigation Items -->
+    <div class="navbar-nav">
+      <button type="button" class="nav-item" (click)="navigateToDashboard()" title="View dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span class="nav-text">Dashboard</span>
+      </button>
 
-      <div class="navbar-buttons">
-        <button type="button" class="nav-btn btn-primary" (click)="navigateToAddEvent()">
-          <span class="btn-icon">📅</span>
-          Add Event
+      <button type="button" class="nav-item" (click)="navigateToChoreList()" title="View chore list">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3 8-8"></path>
+          <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.67 0 3.23.46 4.57 1.25"></path>
+        </svg>
+        <span class="nav-text">Chores</span>
+      </button>
+
+      <button type="button" class="nav-item" (click)="navigateToGroceryList()" title="View grocery list">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8L6 5H2m5 8v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
+          <circle cx="9" cy="19" r="1"></circle>
+          <circle cx="20" cy="19" r="1"></circle>
+        </svg>
+        <span class="nav-text">Groceries</span>
+      </button>
+
+      <button type="button" class="nav-item" *ngIf="isAdmin()" (click)="navigateToAdmin()" title="Admin panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
+          <circle cx="12" cy="16" r="1"></circle>
+          <path d="m7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span class="nav-text">Admin</span>
+      </button>
+    </div>
+
+    <!-- User Menu -->
+    <div class="navbar-user">
+      <div class="user-menu" [class.open]="showUserMenu">
+        <button type="button" class="user-button" (click)="toggleUserMenu()" title="User menu">
+          <div class="user-avatar">{{ getUserAvatar() }}</div>
+          <span class="user-name" *ngIf="currentUser">{{ currentUser.name }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron" [class.rotated]="showUserMenu">
+            <polyline points="6,9 12,15 18,9"></polyline>
+          </svg>
         </button>
 
-        <button type="button" class="nav-btn btn-info" (click)="navigateToChoreList()">
-          <span class="btn-icon">✅</span>
-          View Chores
-        </button>
-
-        <button type="button" 
-                class="nav-btn btn-secondary" 
-                *ngIf="isAdmin()" 
-                (click)="navigateToAdmin()">
-          <span class="btn-icon">⚙️</span>
-          Admin Panel
-        </button>
-
-        <button type="button" 
-                class="nav-btn btn-secondary" 
-                *ngIf="isAdmin()" 
-                (click)="navigateToChores()">
-          <span class="btn-icon">📝</span>
-          Manage Chores
-        </button>
-
-        <button type="button" class="nav-btn btn-outline" (click)="logout()">
-          <span class="btn-icon">🚪</span>
-          Logout
-        </button>
+        <div class="user-dropdown" *ngIf="showUserMenu">
+          <div class="user-info">
+            <div class="user-avatar-large">{{ getUserAvatar() }}</div>
+            <div class="user-details">
+              <span class="user-name-large">{{ currentUser?.name }}</span>
+              <span class="user-role">{{ isAdmin() ? 'Administrator' : 'Family Member' }}</span>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="dropdown-item" (click)="openUserSettings()" title="User settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="m12 1 1.9 3.8 4.2.6-3 2.9.7 4.2L12 10l-3.8 2.5.7-4.2-3-2.9 4.2-.6z"></path>
+            </svg>
+            Settings
+          </button>
+          <button type="button" class="dropdown-item logout" (click)="logout()" title="Logout from FamilyHub">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16,17 21,12 16,7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   </div>

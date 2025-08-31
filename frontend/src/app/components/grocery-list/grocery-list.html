@@ -1,0 +1,450 @@
+<div class="grocery-container">
+  <header class="grocery-header">
+    <div class="header-left">
+      <h1>Grocery List</h1>
+      <p>Manage your family's grocery shopping list</p>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-primary" (click)="toggleAddItemForm()"
+              [class.active]="showAddItemForm" title="Add new item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Item
+      </button>
+    </div>
+  </header>
+
+  <div class="grocery-content">
+    <!-- Favorites Panel - Always visible on left -->
+    <div class="favorites-panel">
+      <div class="favorites-header">
+        <h3>My Favorites</h3>
+        <button class="btn btn-sm btn-outline" (click)="toggleAddFavoriteForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Favorite
+        </button>
+      </div>
+
+      <!-- Add Favorite Form -->
+      <div class="add-favorite-form" *ngIf="showAddFavoriteForm">
+        <form (ngSubmit)="createFavoriteItem()" class="form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="favName">Item Name</label>
+              <input type="text" id="favName" [(ngModel)]="newFavoriteItem.name"
+                     name="favName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="favCategory">Category</label>
+              <select id="favCategory" [(ngModel)]="newFavoriteItem.category"
+                      name="favCategory" class="form-control" required>
+                <option value="">Select category...</option>
+                <option *ngFor="let cat of commonCategories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="favQuantity">Default Quantity</label>
+              <input type="number" id="favQuantity" [(ngModel)]="newFavoriteItem.defaultQuantity"
+                     name="favQuantity" class="form-control" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="favDescription">Description</label>
+              <input type="text" id="favDescription" [(ngModel)]="newFavoriteItem.description"
+                     name="favDescription" class="form-control">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="toggleAddFavoriteForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading">Add to Favorites</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Favorites List -->
+      <div class="favorites-list">
+        <div class="favorite-item" *ngFor="let favorite of favoriteItems">
+          <div class="favorite-info">
+            <div class="favorite-name">{{ favorite.name }}</div>
+            <div class="favorite-details">{{ favorite.category }} • {{ favorite.defaultQuantity }}x</div>
+            <div class="favorite-description" *ngIf="favorite.description">{{ favorite.description }}</div>
+          </div>
+          <div class="favorite-actions">
+            <button class="btn btn-sm btn-primary" (click)="addFavoriteToGroceryList(favorite)"
+                    title="Add to grocery list">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteFavoriteItem(favorite)"
+                    title="Remove from favorites">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="m19,6v14c0,1 -1,2 -2,2H7c-1,0 -2,-1 -2,-2V6m3,0V4c0,-1 1,-2 2,-2h4c1,0 2,1 2,2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content with-favorites">
+      <!-- Messages -->
+      <div class="message success-message" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+      <div class="message error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Add Item Form -->
+      <div class="add-item-form" *ngIf="showAddItemForm">
+        <h3>Add New Item</h3>
+        <form (ngSubmit)="createGroceryItem()" class="form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="itemName">Item Name</label>
+              <input type="text" id="itemName" [(ngModel)]="newGroceryItem.name"
+                     name="itemName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="itemCategory">Category</label>
+              <select id="itemCategory" [(ngModel)]="newGroceryItem.category"
+                      name="itemCategory" class="form-control" required>
+                <option value="">Select category...</option>
+                <option *ngFor="let cat of commonCategories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="itemQuantity">Quantity</label>
+              <input type="number" id="itemQuantity" [(ngModel)]="newGroceryItem.quantity"
+                     name="itemQuantity" class="form-control" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="itemDescription">Description</label>
+              <input type="text" id="itemDescription" [(ngModel)]="newGroceryItem.description"
+                     name="itemDescription" class="form-control">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="toggleAddItemForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading">Add Item</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-controls">
+        <div class="filter-tabs">
+          <button class="tab-btn" [class.active]="activeTab === 'active'"
+                  (click)="setActiveTab('active')">
+            Active Items ({{ activeItems.length }})
+          </button>
+          <button class="tab-btn" [class.active]="activeTab === 'completed'"
+                  (click)="setActiveTab('completed')">
+            Recently Completed ({{ completedItems.length }})
+          </button>
+          <button class="tab-btn" [class.active]="activeTab === 'recipes'"
+                  (click)="setActiveTab('recipes')">
+            Recipes ({{ recipes.length }})
+          </button>
+        </div>
+        <div class="search-controls">
+          <input type="text" placeholder="Search items..." [(ngModel)]="searchTerm"
+                 (ngModelChange)="onSearchChange()" class="search-input">
+        </div>
+      </div>
+
+      <!-- Active Items -->
+      <div class="grocery-items" *ngIf="activeTab === 'active'">
+        <!-- Bulk Actions -->
+        <div class="bulk-actions" *ngIf="activeItems.length > 0">
+          <div class="bulk-controls">
+            <label class="select-all-label">
+              <input type="checkbox" 
+                     [checked]="selectAllActive" 
+                     (change)="toggleSelectAll('active')"
+                     class="select-all-checkbox">
+              Select All ({{ activeItems.length }})
+            </label>
+            <div class="bulk-buttons" *ngIf="getSelectedCount() > 0">
+              <span class="selected-count">{{ getSelectedCount() }} selected</span>
+              <button class="btn btn-sm btn-primary" (click)="bulkMarkCompleted()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20,6 9,17 4,12"></polyline>
+                </svg>
+                Mark Completed
+              </button>
+              <button class="btn btn-sm btn-danger" (click)="bulkDelete()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="m19,6v14c0,1 -1,2 -2,2H7c-1,0 -2,-1 -2,-2V6m3,0V4c0,-1 1,-2 2,-2h4c1,0 2,1 2,2v2"></path>
+                </svg>
+                Delete
+              </button>
+              <button class="btn btn-sm btn-outline" (click)="clearSelection()">
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="items-list">
+          <div class="grocery-item" *ngFor="let item of getFilteredItems(activeItems)" [class.selected]="selectedItems.has(item.id!)">
+            <div class="item-selection">
+              <input type="checkbox" [id]="'select-' + item.id"
+                     [checked]="selectedItems.has(item.id!)" 
+                     (change)="toggleItemSelection(item.id!)"
+                     class="selection-checkbox">
+              <label [for]="'select-' + item.id" class="selection-label"></label>
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ item.name }}</div>
+              <div class="item-details">
+                <span class="item-category">{{ item.category }}</span>
+                <span class="item-quantity">{{ item.quantity }}x</span>
+                <span class="item-added-by">Added by {{ item.addedBy.name }}</span>
+                <span class="item-date">{{ formatDate(item.createdAt) }}</span>
+              </div>
+              <div class="item-description" *ngIf="item.description">{{ item.description }}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-sm btn-primary" (click)="toggleItemCompletion(item)"
+                      title="Mark as completed">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20,6 9,17 4,12"></polyline>
+                </svg>
+              </button>
+              <button class="btn btn-sm" 
+                      [class.btn-outline]="!isItemFavorited(item)"
+                      [class.btn-favorited]="isItemFavorited(item)"
+                      (click)="addToFavorites(item)"
+                      [title]="isItemFavorited(item) ? 'Already favorited' : 'Add to favorites'">
+                <svg width="16" height="16" viewBox="0 0 24 24" 
+                     [attr.fill]="isItemFavorited(item) ? '#FFD700' : 'none'" 
+                     stroke="currentColor" stroke-width="2">
+                  <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                </svg>
+              </button>
+              <button class="btn btn-sm btn-outline" (click)="editGroceryItem(item)"
+                      title="Edit item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m12 20h9"></path>
+                  <path d="m16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+                </svg>
+              </button>
+              <button class="btn btn-sm btn-danger" (click)="deleteGroceryItem(item)"
+                      title="Delete item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="m19,6v14c0,1 -1,2 -2,2H7c-1,0 -2,-1 -2,-2V6m3,0V4c0,-1 1,-2 2,-2h4c1,0 2,1 2,2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Items -->
+      <div class="grocery-items" *ngIf="activeTab === 'completed'">
+        <!-- Bulk Actions -->
+        <div class="bulk-actions" *ngIf="completedItems.length > 0">
+          <div class="bulk-controls">
+            <label class="select-all-label">
+              <input type="checkbox" 
+                     [checked]="selectAllCompleted" 
+                     (change)="toggleSelectAll('completed')"
+                     class="select-all-checkbox">
+              Select All ({{ completedItems.length }})
+            </label>
+            <div class="bulk-buttons" *ngIf="getSelectedCount() > 0">
+              <span class="selected-count">{{ getSelectedCount() }} selected</span>
+              <button class="btn btn-sm btn-danger" (click)="bulkDelete()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="m19,6v14c0,1 -1,2 -2,2H7c-1,0 -2,-1 -2,-2V6m3,0V4c0,-1 1,-2 2,-2h4c1,0 2,1 2,2v2"></path>
+                </svg>
+                Delete
+              </button>
+              <button class="btn btn-sm btn-outline" (click)="clearSelection()">
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="items-list">
+          <div class="grocery-item completed" *ngFor="let item of getFilteredItems(completedItems)" [class.selected]="selectedItems.has(item.id!)">
+            <div class="item-selection">
+              <input type="checkbox" [id]="'select-completed-' + item.id"
+                     [checked]="selectedItems.has(item.id!)" 
+                     (change)="toggleItemSelection(item.id!)"
+                     class="selection-checkbox">
+              <label [for]="'select-completed-' + item.id" class="selection-label"></label>
+            </div>
+            <div class="item-checkbox">
+              <input type="checkbox" [id]="'completed-item-' + item.id"
+                     [checked]="item.isCompleted" (change)="toggleItemCompletion(item)">
+              <label [for]="'completed-item-' + item.id"></label>
+            </div>
+            <div class="item-info">
+              <div class="item-name">{{ item.name }}</div>
+              <div class="item-details">
+                <span class="item-category">{{ item.category }}</span>
+                <span class="item-quantity">{{ item.quantity }}x</span>
+                <span class="item-completed-by">Completed by {{ item.completedBy?.name }}</span>
+                <span class="item-date">{{ formatDate(item.completedAt) }}</span>
+              </div>
+              <div class="item-description" *ngIf="item.description">{{ item.description }}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-sm btn-danger" (click)="deleteGroceryItem(item)"
+                      title="Delete item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="m19,6v14c0,1 -1,2 -2,2H7c-1,0 -2,-1 -2,-2V6m3,0V4c0,-1 1,-2 2,-2h4c1,0 2,1 2,2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipes Tab -->
+      <div class="grocery-items" *ngIf="activeTab === 'recipes'">
+        <!-- Add Recipe Form -->
+        <div class="add-item-form" *ngIf="showAddRecipeForm">
+          <h3>{{ isEditingRecipe() ? 'Edit Recipe' : 'Add New Recipe' }}</h3>
+          <form (ngSubmit)="isEditingRecipe() ? updateRecipe() : createRecipe()" class="form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="recipeName">Recipe Name</label>
+                <input type="text" id="recipeName" [(ngModel)]="newRecipe.name"
+                       name="recipeName" class="form-control" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ingredients</label>
+                <div *ngFor="let ingredient of newRecipe.ingredients; let i = index" class="ingredient-row" 
+                     style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+                  <input type="text" [(ngModel)]="ingredient.amount" 
+                         name="amount-{{i}}" class="form-control" 
+                         placeholder="1 cup" style="flex: 0 0 120px;">
+                  <input type="text" [(ngModel)]="ingredient.ingredient" 
+                         name="ingredient-{{i}}" class="form-control" 
+                         placeholder="flour" style="flex: 1;">
+                  <button type="button" class="btn btn-sm btn-danger" (click)="removeIngredientRow(i)"
+                          [disabled]="newRecipe.ingredients.length <= 1" 
+                          title="Remove ingredient" style="flex: 0 0 auto;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" (click)="addIngredientRow()" 
+                        style="margin-top: 0.5rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Ingredient
+                </button>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" (click)="isEditingRecipe() ? cancelEditRecipe() : toggleAddRecipeForm()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                {{ isEditingRecipe() ? 'Update Recipe' : 'Add Recipe' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="recipe-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 style="margin: 0;">Quick Recipes</h3>
+          <button class="btn btn-primary" (click)="toggleAddRecipeForm()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Recipe
+          </button>
+        </div>
+
+        <!-- Recipe List -->
+        <div class="items-list">
+          <div class="recipe-item grocery-item" *ngFor="let recipe of recipes" style="display: flex; align-items: flex-start;">
+            <div class="item-info" style="flex: 1;">
+              <div class="item-name recipe-name">{{ recipe.name }}</div>
+              <div class="item-details">
+                <span class="item-category">{{ recipe.ingredients.length }} ingredients</span>
+              </div>
+              <div class="recipe-ingredients" *ngIf="recipe.showIngredients" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #e5e7eb;">
+                <div class="ingredient" *ngFor="let ingredient of recipe.ingredients">
+                  {{ ingredient.amount }} {{ ingredient.ingredient }}
+                </div>
+              </div>
+            </div>
+            <div class="item-actions recipe-actions">
+              <button class="btn btn-sm btn-outline" (click)="toggleRecipeIngredients(recipe)"
+                      [title]="recipe.showIngredients ? 'Hide ingredients' : 'Show ingredients'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline [attr.points]="recipe.showIngredients ? '18,15 12,9 6,15' : '6,9 12,15 18,9'"></polyline>
+                </svg>
+              </button>
+              <button class="btn btn-sm btn-primary" (click)="addRecipeToGroceryList(recipe)"
+                      title="Add all ingredients to grocery list">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+              <button class="btn btn-sm btn-outline" (click)="editRecipe(recipe)"
+                      title="Edit recipe">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m12 20h9"></path>
+                  <path d="m16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+                </svg>
+              </button>
+              <button class="btn btn-sm btn-danger" (click)="deleteRecipe(recipe)"
+                      title="Delete recipe">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"></polyline>
+                  <path d="m19,6v14c0,1 -1,2 -2,2H7c-1,0 -2,-1 -2,-2V6m3,0V4c0,-1 1,-2 2,-2h4c1,0 2,1 2,2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <app-confirmation-modal
+    [show]="showConfirmModal"
+    [title]="confirmModalTitle"
+    [message]="confirmModalMessage"
+    [type]="confirmModalType"
+    (confirmed)="onModalConfirm()"
+    (cancelled)="onModalCancel()">
+  </app-confirmation-modal>
+</div>

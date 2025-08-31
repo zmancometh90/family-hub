@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { UserDTO, UserRequest, ApiResponse } from '../models/user.model';
+import { UserDTO, UserRequest, ApiResponse, PasswordChangeRequest, AdminPasswordChangeRequest } from '../models/user.model';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -47,6 +47,18 @@ export class UserService {
   deleteUser(id: string): Observable<void> {
     const headers = this.authService.getAuthHeaders();
     return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`, { headers })
+      .pipe(map(() => undefined));
+  }
+
+  changePassword(request: PasswordChangeRequest): Observable<void> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.post<ApiResponse<void>>(`${this.API_URL}/change-password`, request, { headers })
+      .pipe(map(() => undefined));
+  }
+
+  adminChangePassword(request: AdminPasswordChangeRequest): Observable<void> {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.post<ApiResponse<void>>(`${this.API_URL}/admin/change-password`, request, { headers })
       .pipe(map(() => undefined));
   }
 }

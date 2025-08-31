@@ -1,0 +1,244 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <button type="button" class="back-button" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15,18 9,12 15,6"></polyline>
+      </svg>
+      Back
+    </button>
+    <h1>Settings</h1>
+  </div>
+
+  <div class="settings-content">
+    <!-- User Information -->
+    <div class="settings-section">
+      <h2>Account Information</h2>
+      <div class="user-info" *ngIf="currentUser">
+        <div class="info-item">
+          <label>Name:</label>
+          <span>{{ currentUser.name }}</span>
+        </div>
+        <div class="info-item">
+          <label>Username:</label>
+          <span>{{ currentUser.username }}</span>
+        </div>
+        <div class="info-item">
+          <label>Role:</label>
+          <span class="role-badge" [class.admin]="currentUser.role === 'ADMIN'">
+            {{ currentUser.role === 'ADMIN' ? 'Administrator' : 'Family Member' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avatar Settings -->
+    <div class="settings-section">
+      <h2>Avatar Settings</h2>
+      
+      <div class="avatar-preview" *ngIf="currentUser">
+        <div class="avatar-display">
+          <div class="avatar-circle">
+            {{ getUserAvatar() }}
+          </div>
+          <div class="avatar-info">
+            <p class="avatar-description">
+              <span *ngIf="currentUser.avatar; else noAvatar">Your custom avatar: "{{ currentUser.avatar }}"</span>
+              <ng-template #noAvatar>No custom avatar set. Using first letter of your name.</ng-template>
+            </p>
+            <button type="button" class="btn-outline" (click)="toggleAvatarForm()">
+              {{ showAvatarForm ? 'Cancel' : 'Change Avatar' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="avatar-form" *ngIf="showAvatarForm">
+          <div class="form-group">
+            <label for="avatarText">Avatar Text (emoji or single character):</label>
+            <input 
+              type="text" 
+              id="avatarText"
+              name="avatarText"
+              [(ngModel)]="avatarText"
+              maxlength="2"
+              class="form-control avatar-input"
+              placeholder="😊 or A">
+            <div class="form-hint">
+              Use an emoji (😊) or a single character (A). Leave empty to use the first letter of your name.
+            </div>
+          </div>
+          
+          <div class="avatar-preview-small">
+            <div class="avatar-circle-small">
+              {{ avatarText.trim() || getUserInitial() }}
+            </div>
+            <span class="preview-label">Preview</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="toggleAvatarForm()">Cancel</button>
+            <button 
+              type="button" 
+              class="btn-primary" 
+              (click)="saveAvatar()"
+              [disabled]="isLoading">
+              <span *ngIf="isLoading">Saving...</span>
+              <span *ngIf="!isLoading">Save Avatar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Change -->
+    <div class="settings-section">
+      <h2>Change Password</h2>
+      
+      <div class="success-message" *ngIf="successMessage">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20,6 9,17 4,12"></polyline>
+        </svg>
+        {{ successMessage }}
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <form (ngSubmit)="onPasswordSubmit()" class="password-form">
+        <!-- Current Password -->
+        <div class="form-group">
+          <label for="currentPassword">Current Password</label>
+          <div class="password-input-container">
+            <input 
+              [type]="showCurrentPassword ? 'text' : 'password'"
+              id="currentPassword" 
+              name="currentPassword"
+              [(ngModel)]="passwordData.currentPassword"
+              required 
+              class="form-control"
+              placeholder="Enter your current password"
+              [disabled]="isLoading"
+              autocomplete="current-password">
+            <button 
+              type="button" 
+              class="password-toggle-btn"
+              (mousedown)="showPasswordTemporarily('current')"
+              (mouseup)="hidePassword('current')"
+              (mouseleave)="hidePassword('current')"
+              (touchstart)="showPasswordTemporarily('current')"
+              (touchend)="hidePassword('current')"
+              [disabled]="isLoading"
+              title="Hold to show password">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!showCurrentPassword">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="showCurrentPassword">
+                <path d="m1 12 4.95-4.95a10 10 0 0 1 14.1 0L24 12"></path>
+                <path d="m24 12-4.95 4.95a10 10 0 0 1-14.1 0L1 12"></path>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <div class="password-input-container">
+            <input 
+              [type]="showNewPassword ? 'text' : 'password'"
+              id="newPassword" 
+              name="newPassword"
+              [(ngModel)]="passwordData.newPassword"
+              required 
+              class="form-control"
+              placeholder="Enter your new password"
+              [disabled]="isLoading"
+              minlength="6"
+              autocomplete="new-password">
+            <button 
+              type="button" 
+              class="password-toggle-btn"
+              (mousedown)="showPasswordTemporarily('new')"
+              (mouseup)="hidePassword('new')"
+              (mouseleave)="hidePassword('new')"
+              (touchstart)="showPasswordTemporarily('new')"
+              (touchend)="hidePassword('new')"
+              [disabled]="isLoading"
+              title="Hold to show password">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!showNewPassword">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="showNewPassword">
+                <path d="m1 12 4.95-4.95a10 10 0 0 1 14.1 0L24 12"></path>
+                <path d="m24 12-4.95 4.95a10 10 0 0 1-14.1 0L1 12"></path>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="form-hint">Password must be at least 6 characters long</div>
+        </div>
+
+        <!-- Confirm New Password -->
+        <div class="form-group">
+          <label for="confirmPassword">Confirm New Password</label>
+          <div class="password-input-container">
+            <input 
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword" 
+              name="confirmPassword"
+              [(ngModel)]="passwordData.confirmPassword"
+              required 
+              class="form-control"
+              placeholder="Confirm your new password"
+              [disabled]="isLoading"
+              autocomplete="new-password">
+            <button 
+              type="button" 
+              class="password-toggle-btn"
+              (mousedown)="showPasswordTemporarily('confirm')"
+              (mouseup)="hidePassword('confirm')"
+              (mouseleave)="hidePassword('confirm')"
+              (touchstart)="showPasswordTemporarily('confirm')"
+              (touchend)="hidePassword('confirm')"
+              [disabled]="isLoading"
+              title="Hold to show password">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!showConfirmPassword">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="showConfirmPassword">
+                <path d="m1 12 4.95-4.95a10 10 0 0 1 14.1 0L24 12"></path>
+                <path d="m24 12-4.95 4.95a10 10 0 0 1-14.1 0L1 12"></path>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="save-btn"
+            [disabled]="isLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="isLoading">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+            </svg>
+            <span *ngIf="isLoading">Changing Password...</span>
+            <span *ngIf="!isLoading">Change Password</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

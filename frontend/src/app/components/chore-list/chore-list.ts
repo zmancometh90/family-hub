@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ChoreService } from '../../services/chore.service';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
@@ -11,7 +11,7 @@ import { UserDTO } from '../../models/user.model';
 @Component({
   selector: 'app-chore-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './chore-list.html',
   styleUrl: './chore-list.css'
 })
@@ -101,8 +101,18 @@ export class ChoreListComponent implements OnInit {
         return false;
       }
       
-      if (this.filterAssignedTo && chore.assignedTo !== this.filterAssignedTo) {
-        return false;
+      if (this.filterAssignedTo) {
+        // Get the actual user ID from assignedTo
+        let assignedUserId = '';
+        if (typeof chore.assignedTo === 'string') {
+          assignedUserId = chore.assignedTo;
+        } else if (typeof chore.assignedTo === 'object' && chore.assignedTo?.id) {
+          assignedUserId = chore.assignedTo.id;
+        }
+        
+        if (assignedUserId !== this.filterAssignedTo) {
+          return false;
+        }
       }
       
       return true;

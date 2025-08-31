@@ -81,4 +81,9 @@ export class AuthService {
         })
       );
   }
+
+  updateCurrentUser(user: UserDTO): void {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+  }
 }

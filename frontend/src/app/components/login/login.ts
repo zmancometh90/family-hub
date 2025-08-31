@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,18 +12,25 @@ import { LoginRequest } from '../../models/user.model';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   credentials: LoginRequest = {
     username: '',
     password: ''
   };
   errorMessage = '';
   isLoading = false;
+  showPassword = false;
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
 
   onSubmit(): void {
     if (!this.credentials.username || !this.credentials.password) {
@@ -52,5 +59,13 @@ export class LoginComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  showPasswordTemporarily(): void {
+    this.showPassword = true;
+  }
+
+  hidePassword(): void {
+    this.showPassword = false;
   }
 }

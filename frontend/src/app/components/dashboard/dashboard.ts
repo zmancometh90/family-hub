@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions, EventClickArg, DateSelectArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -20,22 +21,47 @@ import { EventDTO } from '../../models/event.model';
 export class DashboardComponent implements OnInit {
   currentUser: UserDTO | null = null;
   events: EventDTO[] = [];
+  currentView: 'month' | 'day' | 'myday' = 'month';
+  selectedDate: Date = new Date();
+  todayEvents: EventDTO[] = [];
+  userEvents: EventDTO[] = [];
+  calendarApi: any = null;
   
   calendarOptions: CalendarOptions = {
     initialView: 'dayGridMonth',
-    plugins: [dayGridPlugin, interactionPlugin],
+    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'dayGridMonth'
+      right: 'dayGridMonth,timeGridDay,myDayView'
+    },
+    customButtons: {
+      myDayView: {
+        text: 'My Day',
+        click: () => this.switchView('myday')
+      }
+    },
+    views: {
+      dayGridMonth: {
+        buttonText: 'Month'
+      },
+      timeGridDay: {
+        buttonText: 'Daily'
+      }
     },
     selectable: true,
     selectMirror: true,
     dayMaxEvents: true,
     weekends: true,
+    slotMinTime: '06:00:00',
+    slotMaxTime: '22:00:00',
+    slotDuration: '00:30:00',
+    allDaySlot: true,
+    nowIndicator: true,
     select: this.handleDateSelect.bind(this),
     eventClick: this.handleEventClick.bind(this),
     eventsSet: this.handleEvents.bind(this),
+    viewDidMount: this.handleViewChange.bind(this),
     events: []
   };
 
@@ -101,27 +127,95 @@ export class DashboardComponent implements OnInit {
     const calendarApi = selectInfo.view.calendar;
     calendarApi.unselect();
 
-    // Navigate to day view for the selected date
-    this.router.navigate(['/day-view', selectInfo.startStr]);
+    // Switch to daily view for the selected date
+    calendarApi.changeView('timeGridDay', selectInfo.start);
+    this.currentView = 'day';
   }
 
   handleEventClick(clickInfo: EventClickArg): void {
-    // Get the date that was clicked on (not necessarily the event's start date)
-    const clickedDate = clickInfo.jsEvent.target as HTMLElement;
-    const dayCell = clickedDate.closest('.fc-day, .fc-daygrid-day');
-    
-    if (dayCell && dayCell.getAttribute('data-date')) {
-      // If we can get the clicked date, navigate to day view for that date
-      const clickedDateStr = dayCell.getAttribute('data-date')!;
-      this.router.navigate(['/day-view', clickedDateStr]);
-    } else {
-      // Fallback to event detail view
-      this.router.navigate(['/events', clickInfo.event.id]);
+    // Switch to daily view for the event's date
+    const calendarApi = clickInfo.view.calendar;
+    if (clickInfo.event.start) {
+      calendarApi.changeView('timeGridDay', clickInfo.event.start);
+      this.currentView = 'day';
     }
   }
 
   handleEvents(events: any[]): void {
     // Handle events set
+  }
+
+  switchView(view: 'month' | 'day' | 'myday'): void {
+    this.currentView = view;
+    if (view === 'myday') {
+      this.filterUserEvents();
+    } else if (this.calendarApi) {
+      // For regular calendar views, let FullCalendar handle the view change
+      if (view === 'month') {
+        this.calendarApi.changeView('dayGridMonth');
+      } else if (view === 'day') {
+        this.calendarApi.changeView('timeGridDay');
+      }
+    }
+  }
+
+  handleViewChange(viewInfo: any): void {
+    // Store calendar API reference
+    this.calendarApi = viewInfo.view.calendar;
+    
+    // Update current view based on FullCalendar view
+    if (viewInfo.view.type === 'dayGridMonth') {
+      this.currentView = 'month';
+    } else if (viewInfo.view.type === 'timeGridDay') {
+      this.currentView = 'day';
+    }
+  }
+
+  filterTodayEvents(): void {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    this.todayEvents = this.events.filter(event => {
+      const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+      return eventDate === todayStr;
+    });
+  }
+
+  filterUserEvents(): void {
+    if (!this.currentUser) return;
+    
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Filter events for current user for today
+    this.userEvents = this.events.filter(event => {
+      const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+      // In a real app, you'd filter by event.userId === this.currentUser.id
+      // For now, we'll show all events for the day
+      return eventDate === todayStr;
+    });
+  }
+
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  formatTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  formatEventType(eventType: string): string {
+    return eventType.charAt(0).toUpperCase() + eventType.slice(1).toLowerCase().replace('_', ' ');
   }
 
 }

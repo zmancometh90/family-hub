@@ -1,50 +1,99 @@
 <div class="dashboard-container">
-
   <main class="dashboard-main">
-    <div class="calendar-container">
-      <full-calendar [options]="calendarOptions"></full-calendar>
+    <div class="dashboard-content">
+      <!-- Legend on the left -->
+      <div class="event-legend">
+        <h3>Event Types</h3>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #ff6b6b;"></span>
+            <span>Birthday</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #ff8cc8;"></span>
+            <span>Anniversary</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #4ecdc4;"></span>
+            <span>Holiday</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #45b7d1;"></span>
+            <span>Vacation</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #f9ca24;"></span>
+            <span>Reunion</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #f0932b;"></span>
+            <span>Celebration</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #eb4d4b;"></span>
+            <span>Appointment</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #6c5ce7;"></span>
+            <span>Meeting</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #a0a0a0;"></span>
+            <span>Other</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content area -->
+      <div class="main-content-container">
+        <!-- Calendar view (Month and Daily) -->
+        <div class="calendar-container" *ngIf="currentView !== 'myday'">
+          <full-calendar [options]="calendarOptions"></full-calendar>
+        </div>
+
+        <!-- My Day view -->
+        <div class="my-day-view" *ngIf="currentView === 'myday'">
+          <div class="view-header">
+            <h2>My Day - {{ formatDate(selectedDate.toISOString()) }}</h2>
+            <div class="view-controls">
+              <button class="btn btn-outline" (click)="switchView('month')">Back to Calendar</button>
+            </div>
+          </div>
+          
+          <div class="events-list" *ngIf="userEvents.length > 0">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let event of userEvents">
+                    <td>{{ formatTime(event.startTime) }}</td>
+                    <td>{{ event.title }}</td>
+                    <td>
+                      <span class="type-badge" [style.background-color]="getEventColor(event.eventType)">
+                        {{ formatEventType(event.eventType) }}
+                      </span>
+                    </td>
+                    <td>{{ event.location || 'N/A' }}</td>
+                    <td>{{ event.description || 'N/A' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="no-events" *ngIf="userEvents.length === 0">
+            <p>You have no events scheduled for today.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
-
-  <div class="event-legend">
-    <h3>Event Types</h3>
-    <div class="legend-items">
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #ff6b6b;"></span>
-        <span>Birthday</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #ff8cc8;"></span>
-        <span>Anniversary</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #4ecdc4;"></span>
-        <span>Holiday</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #45b7d1;"></span>
-        <span>Vacation</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #f9ca24;"></span>
-        <span>Reunion</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #f0932b;"></span>
-        <span>Celebration</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #eb4d4b;"></span>
-        <span>Appointment</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #6c5ce7;"></span>
-        <span>Meeting</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #a0a0a0;"></span>
-        <span>Other</span>
-      </div>
-    </div>
-  </div>
 </div>

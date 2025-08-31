@@ -4,6 +4,7 @@ export interface User {
   name: string;
   role: UserRole;
   active: boolean;
+  avatar?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -14,6 +15,7 @@ export interface UserDTO {
   name: string;
   role: UserRole;
   active: boolean;
+  avatar?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -28,6 +30,17 @@ export interface UserRequest {
 export interface LoginRequest {
   username: string;
   password: string;
+}
+
+export interface PasswordChangeRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface AdminPasswordChangeRequest {
+  adminPassword: string;
+  targetUserId: string;
+  newPassword: string;
 }
 
 export enum UserRole {

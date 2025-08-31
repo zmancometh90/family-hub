@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { EventService } from '../../services/event.service';
-import { UserDTO, UserRequest, UserRole } from '../../models/user.model';
+import { UserDTO, UserRequest, UserRole, AdminPasswordChangeRequest } from '../../models/user.model';
 import { EventDTO } from '../../models/event.model';
 
 @Component({
@@ -39,6 +39,24 @@ export class AdminComponent implements OnInit {
     adminUsers: 0,
     activeEvents: 0
   };
+
+  // Password change functionality
+  passwordChangeData = {
+    selectedUserId: '',
+    adminPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  };
+
+  // Password visibility toggles
+  showAdminPassword = false;
+  showUserNewPassword = false;
+  showConfirmUserPassword = false;
+  
+  // Password change specific messages and loading state
+  passwordSuccessMessage = '';
+  passwordErrorMessage = '';
+  isChangingPassword = false;
 
   activeTab = 'overview';
 
@@ -104,6 +122,7 @@ export class AdminComponent implements OnInit {
   setActiveTab(tab: string): void {
     this.activeTab = tab;
     this.clearMessages();
+    this.clearPasswordMessages();
   }
 
   toggleCreateUserForm(): void {
@@ -256,5 +275,125 @@ export class AdminComponent implements OnInit {
 
   getUserRoles(): UserRole[] {
     return Object.values(UserRole);
+  }
+
+  // Password change functionality
+  showAdminPasswordTemporarily(): void {
+    this.showAdminPassword = true;
+  }
+
+  hideAdminPassword(): void {
+    this.showAdminPassword = false;
+  }
+
+  showUserNewPasswordTemporarily(): void {
+    this.showUserNewPassword = true;
+  }
+
+  hideUserNewPassword(): void {
+    this.showUserNewPassword = false;
+  }
+
+  showConfirmUserPasswordTemporarily(): void {
+    this.showConfirmUserPassword = true;
+  }
+
+  hideConfirmUserPassword(): void {
+    this.showConfirmUserPassword = false;
+  }
+
+  clearPasswordMessages(): void {
+    this.passwordSuccessMessage = '';
+    this.passwordErrorMessage = '';
+  }
+
+  resetPasswordForm(): void {
+    this.passwordChangeData = {
+      selectedUserId: '',
+      adminPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    };
+    this.showAdminPassword = false;
+    this.showUserNewPassword = false;
+    this.showConfirmUserPassword = false;
+    this.clearPasswordMessages();
+  }
+
+  changeUserPassword(): void {
+    this.clearPasswordMessages();
+
+    // Validation
+    if (!this.passwordChangeData.selectedUserId) {
+      this.passwordErrorMessage = 'Please select a user';
+      return;
+    }
+
+    if (!this.passwordChangeData.adminPassword) {
+      this.passwordErrorMessage = 'Please enter your admin password for verification';
+      return;
+    }
+
+    if (!this.passwordChangeData.newPassword) {
+      this.passwordErrorMessage = 'Please enter a new password';
+      return;
+    }
+
+    if (this.passwordChangeData.newPassword.length < 6) {
+      this.passwordErrorMessage = 'New password must be at least 6 characters long';
+      return;
+    }
+
+    if (this.passwordChangeData.newPassword !== this.passwordChangeData.confirmPassword) {
+      this.passwordErrorMessage = 'New password and confirmation do not match';
+      return;
+    }
+
+    const selectedUser = this.users.find(u => u.id === this.passwordChangeData.selectedUserId);
+    if (!selectedUser) {
+      this.passwordErrorMessage = 'Selected user not found';
+      return;
+    }
+
+    this.isChangingPassword = true;
+
+    const request: AdminPasswordChangeRequest = {
+      adminPassword: this.passwordChangeData.adminPassword,
+      targetUserId: this.passwordChangeData.selectedUserId,
+      newPassword: this.passwordChangeData.newPassword
+    };
+
+    this.userService.adminChangePassword(request).subscribe({
+      next: () => {
+        this.isChangingPassword = false;
+        this.passwordSuccessMessage = `Password changed successfully for user "${selectedUser.name}"`;
+        
+        // Clear the form after successful change
+        this.resetPasswordForm();
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          this.passwordSuccessMessage = '';
+        }, 5000);
+      },
+      error: (error) => {
+        this.isChangingPassword = false;
+        console.error('Admin password change error:', error);
+        
+        if (error.status === 401) {
+          this.passwordErrorMessage = 'Admin password is incorrect';
+        } else if (error.status === 403) {
+          this.passwordErrorMessage = 'You do not have permission to change passwords';
+        } else if (error.status === 400) {
+          this.passwordErrorMessage = error.error?.message || 'Invalid password change request';
+        } else if (error.status === 404) {
+          this.passwordErrorMessage = 'Selected user not found';
+        } else if (error.status === 0) {
+          this.passwordErrorMessage = 'Cannot connect to server. Please check if the backend is running.';
+        } else {
+          this.passwordErrorMessage = `Password change failed: ${error.error?.message || 'Unknown error'}`;
+        }
+      }
+    });
   }
 }

@@ -74,7 +74,7 @@ public class SecurityConfig {
                         // Event endpoints - Both roles can manage events
                         .requestMatchers("/api/v1/events/**").hasAnyRole("ADMIN", "BASIC_USER")
 
-                        // Chorestation endpoints - Only ADMIN can manage chores
+                        // Chore endpoints - Only ADMIN can manage chores
                         .requestMatchers(HttpMethod.GET, "/api/v1/chores/").hasAnyRole("ADMIN", "BASIC_USER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/chores/status/{status}").hasAnyRole("ADMIN", "BASIC_USER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/chores/date-range").hasAnyRole("ADMIN", "BASIC_USER")
@@ -84,6 +84,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/chores/{id}/status").hasAnyRole("ADMIN", "BASIC_USER")
                         .requestMatchers(HttpMethod.POST,"/api/v1/chores/").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/v1/chores/{id}").hasRole("ADMIN")
+
+                        // Grocery endpoints - Both roles can manage grocery items
+                        .requestMatchers("/api/v1/grocery/**").hasAnyRole("ADMIN", "BASIC_USER")
+
+                        // Favorites endpoints - Both roles can manage their own favorites
+                        .requestMatchers("/api/v1/favorites/**").hasAnyRole("ADMIN", "BASIC_USER")
 
                         // All other requests require authentication
                         .anyRequest().authenticated()

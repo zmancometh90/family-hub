@@ -4,6 +4,8 @@ import com.github.zmancometh90.familyhub.models.ApiResponse;
 import com.github.zmancometh90.familyhub.models.User;
 import com.github.zmancometh90.familyhub.models.UserDTO;
 import com.github.zmancometh90.familyhub.models.UserRequest;
+import com.github.zmancometh90.familyhub.models.PasswordChangeRequest;
+import com.github.zmancometh90.familyhub.models.AdminPasswordChangeRequest;
 import com.github.zmancometh90.familyhub.security.UserPrincipal;
 import com.github.zmancometh90.familyhub.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -165,6 +167,60 @@ public class UserController {
             response.setMessage(e.getMessage());
             response.setSuccess(false);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
+        ApiResponse<Void> response = new ApiResponse<>();
+        UserPrincipal currentUser = (UserPrincipal) authentication.getPrincipal();
+        
+        try {
+            userService.changePassword(currentUser.getId(), request);
+            response.setData(null);
+            response.setMessage("Password changed successfully");
+            response.setSuccess(true);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.setData(null);
+            response.setMessage(e.getMessage());
+            response.setSuccess(false);
+            if (e.getMessage().contains("incorrect") || e.getMessage().contains("Current password")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/admin/change-password")
+    public ResponseEntity<ApiResponse<Void>> adminChangePassword(@RequestBody AdminPasswordChangeRequest request, Authentication authentication) {
+        ApiResponse<Void> response = new ApiResponse<>();
+        UserPrincipal currentUser = (UserPrincipal) authentication.getPrincipal();
+        
+        // Check if user is admin
+        if (currentUser.getRole() != User.Role.ADMIN) {
+            response.setData(null);
+            response.setMessage("Access denied: Only administrators can change other users' passwords");
+            response.setSuccess(false);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        
+        try {
+            userService.adminChangePassword(currentUser.getId(), request);
+            response.setData(null);
+            response.setMessage("Password changed successfully");
+            response.setSuccess(true);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.setData(null);
+            response.setMessage(e.getMessage());
+            response.setSuccess(false);
+            if (e.getMessage().contains("incorrect") || e.getMessage().contains("Admin password")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            } else if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 }

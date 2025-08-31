@@ -1,0 +1,97 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Oil painting texture gradients -->
+    <radialGradient id="warmLight" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d7972b;stop-opacity:0.8" />
+    </radialGradient>
+    
+    <linearGradient id="tableGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8d4925;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5d2f13;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="wallGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8d5b7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d4b896;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b08d57;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Texture patterns for oil painting effect -->
+    <pattern id="brushTexture" patternUnits="userSpaceOnUse" width="20" height="20">
+      <rect width="20" height="20" fill="#000" opacity="0.02"/>
+      <circle cx="5" cy="5" r="1" fill="#000" opacity="0.05"/>
+      <circle cx="15" cy="12" r="1.5" fill="#000" opacity="0.03"/>
+      <circle cx="8" cy="18" r="1" fill="#000" opacity="0.04"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background wall -->
+  <rect width="1920" height="1080" fill="url(#wallGradient)"/>
+  
+  <!-- Warm lighting overlay -->
+  <rect width="1920" height="1080" fill="url(#warmLight)" opacity="0.6"/>
+  
+  <!-- Table -->
+  <ellipse cx="960" cy="800" rx="600" ry="200" fill="url(#tableGradient)"/>
+  
+  <!-- Table items (simplified) -->
+  <!-- Centerpiece/candles -->
+  <rect x="930" y="720" width="60" height="80" rx="5" fill="#f4d03f" opacity="0.9"/>
+  <circle cx="960" cy="720" r="15" fill="#fdeaa7"/>
+  
+  <!-- Plates -->
+  <circle cx="800" cy="750" r="40" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
+  <circle cx="1120" cy="750" r="40" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
+  <circle cx="700" cy="780" r="40" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
+  <circle cx="1220" cy="780" r="40" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
+  
+  <!-- Family figures (stylized, oil painting style) -->
+  <!-- Father figure -->
+  <g transform="translate(650,600)">
+    <ellipse cx="0" cy="60" rx="35" ry="65" fill="#2c3e50"/>
+    <circle cx="0" cy="0" r="25" fill="#fdbcb4"/>
+    <rect x="-15" y="-5" width="30" height="8" fill="#34495e"/>
+  </g>
+  
+  <!-- Mother figure -->
+  <g transform="translate(850,590)">
+    <ellipse cx="0" cy="65" rx="30" ry="70" fill="#8e44ad"/>
+    <circle cx="0" cy="0" r="22" fill="#fdbcb4"/>
+    <path d="M-20,-10 Q0,-25 20,-10 Q0,-5 -20,-10" fill="#5d4037"/>
+  </g>
+  
+  <!-- Child figure -->
+  <g transform="translate(1050,630)">
+    <ellipse cx="0" cy="45" rx="25" ry="50" fill="#3498db"/>
+    <circle cx="0" cy="0" r="18" fill="#fdbcb4"/>
+    <rect x="-12" y="-8" width="24" height="6" fill="#f39c12"/>
+  </g>
+  
+  <!-- Second child -->
+  <g transform="translate(1200,640)">
+    <ellipse cx="0" cy="40" rx="22" ry="45" fill="#e74c3c"/>
+    <circle cx="0" cy="0" r="16" fill="#fdbcb4"/>
+    <path d="M-15,-12 Q0,-20 15,-12 Q0,-8 -15,-12" fill="#8b4513"/>
+  </g>
+  
+  <!-- Window with soft light -->
+  <rect x="100" y="200" width="200" height="300" fill="#87ceeb" opacity="0.6" rx="10"/>
+  <rect x="110" y="210" width="180" height="280" fill="#b0e0e6" opacity="0.4" rx="5"/>
+  
+  <!-- Curtains -->
+  <path d="M80,180 Q120,220 100,500 Q90,520 70,500 L70,180 Z" fill="#8b0000" opacity="0.7"/>
+  <path d="M320,180 Q280,220 300,500 Q310,520 330,500 L330,180 Z" fill="#8b0000" opacity="0.7"/>
+  
+  <!-- Texture overlay for oil painting effect -->
+  <rect width="1920" height="1080" fill="url(#brushTexture)" opacity="0.3"/>
+  
+  <!-- Soft vignette -->
+  <defs>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#000;stop-opacity:0" />
+      <stop offset="100%" style="stop-color:#000;stop-opacity:0.3" />
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+</svg>
