@@ -1,0 +1,10 @@
+/* Global app styles */
+.main-content {
+  min-height: calc(100vh - 64px);
+  background-color: #f8fafc;
+  width: 100vw;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}

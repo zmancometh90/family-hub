@@ -1,0 +1,131 @@
+<div class="event-detail-container">
+  <div class="event-detail-header">
+    <div class="header-navigation">
+      <button type="button" class="btn btn-secondary" (click)="backToDashboard()">
+        ← Back to Calendar
+      </button>
+      <button type="button" class="btn btn-outline" (click)="backToDayView()">
+        View Day Schedule
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading event details...</p>
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="success-message" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="event-detail-card" *ngIf="event && !isLoading">
+    <div class="event-header">
+      <div class="event-title-section">
+        <h1 class="event-title">{{ event.title }}</h1>
+        <div class="event-badges">
+          <span class="event-type-badge" [style.background-color]="getEventColor()">
+            {{ formatEventType() }}
+          </span>
+          <span class="event-status-badge" [style.background-color]="getDynamicStatusColor()">
+            {{ getDynamicStatus() }}
+          </span>
+          <span class="recurring-badge" *ngIf="event.isRecurring">
+            Recurring
+          </span>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="event-details">
+      <div class="detail-section">
+        <div class="detail-item">
+          <div class="detail-icon">📅</div>
+          <div class="detail-content">
+            <div class="detail-label">Date & Time</div>
+            <div class="detail-value">{{ formatDateTime() }}</div>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="event.location">
+          <div class="detail-icon">📍</div>
+          <div class="detail-content">
+            <div class="detail-label">Location</div>
+            <div class="detail-value">{{ event.location }}</div>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="event.description">
+          <div class="detail-icon">📝</div>
+          <div class="detail-content">
+            <div class="detail-label">Description</div>
+            <div class="detail-value">{{ event.description }}</div>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="event.isRecurring && event.recurrencePattern">
+          <div class="detail-icon">🔄</div>
+          <div class="detail-content">
+            <div class="detail-label">Recurrence Pattern</div>
+            <div class="detail-value">{{ event.recurrencePattern }}</div>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="event.attendees && event.attendees.length > 0">
+          <div class="detail-icon">👥</div>
+          <div class="detail-content">
+            <div class="detail-label">Attendees</div>
+            <div class="detail-value">
+              <div class="attendees-list">
+                <span class="attendee-item" *ngFor="let attendee of event.attendees">
+                  {{ attendee }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-meta">
+        <div class="meta-item" *ngIf="event.createdAt">
+          <span class="meta-label">Created:</span>
+          <span class="meta-value">{{ formatCreatedDate() }}</span>
+        </div>
+        <div class="meta-item" *ngIf="event.updatedAt && event.updatedAt !== event.createdAt">
+          <span class="meta-label">Last Updated:</span>
+          <span class="meta-value">{{ formatUpdatedDate() }}</span>
+        </div>
+        <div class="meta-item" *ngIf="event.createdBy">
+          <span class="meta-label">Created By:</span>
+          <span class="meta-value">{{ getCreatorName() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="event-actions-bottom" *ngIf="canEditEvent() || canDeleteEvent()">
+      <div class="action-buttons">
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="editEvent()"
+          *ngIf="canEditEvent()">
+          <span class="btn-icon">✏️</span>
+          Edit Event
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger" 
+          (click)="deleteEvent()"
+          *ngIf="canDeleteEvent()">
+          <span class="btn-icon">🗑️</span>
+          Delete Event
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

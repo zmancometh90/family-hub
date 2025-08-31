@@ -1,0 +1,165 @@
+<div class="chore-list-container">
+  <div class="page-header">
+    <h1>Family Chores</h1>
+  </div>
+
+  <div class="messages" *ngIf="errorMessage || successMessage">
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+      <button type="button" class="close-btn" (click)="clearMessages()">×</button>
+    </div>
+    <div class="success-message" *ngIf="successMessage">
+      {{ successMessage }}
+      <button type="button" class="close-btn" (click)="clearMessages()">×</button>
+    </div>
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading chores...</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" *ngIf="!isLoading">
+    <div class="filter-group">
+      <label for="statusFilter">Filter by Status:</label>
+      <select id="statusFilter" [(ngModel)]="filterStatus" class="form-control">
+        <option value="">All Statuses</option>
+        <option value="PENDING">Pending</option>
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="OVERDUE">Overdue</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="assignedFilter">Filter by Assigned:</label>
+      <select id="assignedFilter" [(ngModel)]="filterAssignedTo" class="form-control">
+        <option value="">All Users</option>
+        <option value="">Unassigned</option>
+        <option *ngFor="let user of users" [value]="user.id">{{ user.name }}</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Chores List -->
+  <div class="chores-list" *ngIf="!isLoading">
+    <div class="chores-header">
+      <h3>Chores ({{ filteredChores().length }})</h3>
+    </div>
+
+    <div class="chores-grid" *ngIf="filteredChores().length > 0">
+      <div class="chore-card" 
+           *ngFor="let chore of filteredChores(); trackBy: trackByChoreId"
+           [class.overdue]="isOverdue(chore)">
+        
+        <div class="chore-header">
+          <div class="chore-title-section">
+            <h4 class="chore-title">{{ chore.title }}</h4>
+            <div class="chore-badges">
+              <span class="chore-type-badge">{{ getChoreTypeLabel(chore.choreType) }}</span>
+              <span class="priority-badge" [class]="getPriorityClass(chore.priority || '')">
+                {{ getChorePriorityLabel(chore.priority) }}
+              </span>
+              <span class="status-badge" [class]="getStatusClass(chore.status || '')">
+                {{ getChoreStatusLabel(chore.status) }}
+              </span>
+              <span class="overdue-badge" *ngIf="isOverdue(chore)">OVERDUE</span>
+            </div>
+          </div>
+          
+          <div class="chore-actions" *ngIf="canCompleteChore(chore)">
+            <button 
+              type="button" 
+              class="btn btn-sm btn-success" 
+              (click)="quickCompleteChore(chore)"
+              title="Mark as Completed">
+              ✓ Complete
+            </button>
+          </div>
+        </div>
+
+        <div class="chore-details">
+          <div class="detail-row" *ngIf="chore.description">
+            <span class="detail-label">Description:</span>
+            <span class="detail-value">{{ chore.description }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Assigned to:</span>
+            <span class="detail-value">{{ getAssignedUserName(chore.assignedTo) }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.dueDate">
+            <span class="detail-label">Due Date:</span>
+            <span class="detail-value" [class.overdue-text]="isOverdue(chore)">
+              {{ formatDate(chore.dueDate) }}
+            </span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.estimatedDurationMinutes">
+            <span class="detail-label">Estimated Time:</span>
+            <span class="detail-value">{{ chore.estimatedDurationMinutes }} minutes</span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.status === 'COMPLETED' && chore.completedBy">
+            <span class="detail-label">Completed by:</span>
+            <span class="detail-value completed-by">{{ getCompletedByUserName(chore.completedBy) }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.status === 'COMPLETED' && chore.completedAt">
+            <span class="detail-label">Completed on:</span>
+            <span class="detail-value">{{ formatDateTime(chore.completedAt) }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.isRecurring">
+            <span class="detail-label">Recurring:</span>
+            <span class="detail-value">{{ chore.recurrencePattern || 'Yes' }}</span>
+          </div>
+        </div>
+
+        <!-- Status Update Controls for All Users -->
+        <div class="chore-status-actions" *ngIf="chore.status !== 'COMPLETED'">
+          <label for="status-{{ chore.id }}">Update Status:</label>
+          <select
+            id="status-{{ chore.id }}"
+            [value]="chore.status"
+            (change)="updateChoreStatus(chore, $any($event.target).value)"
+            class="form-control status-select">
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="completed-info" *ngIf="chore.status === 'COMPLETED'">
+          <div class="completed-badge">
+            ✓ Completed
+            <span *ngIf="chore.completedBy"> by {{ getCompletedByUserName(chore.completedBy) }}</span>
+          </div>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline" 
+            (click)="updateChoreStatus(chore, 'PENDING')"
+            title="Mark as Pending">
+            Reopen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-chores" *ngIf="filteredChores().length === 0 && chores.length > 0">
+      <p>No chores match your current filters.</p>
+      <button type="button" class="btn btn-secondary" (click)="filterStatus = ''; filterAssignedTo = ''">
+        Clear Filters
+      </button>
+    </div>
+
+    <div class="no-chores" *ngIf="chores.length === 0">
+      <p>No chores have been created yet.</p>
+      <p>Use the "Manage Chores" button in the navigation bar to create your first chore.</p>
+    </div>
+  </div>
+</div>

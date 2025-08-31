@@ -1,0 +1,256 @@
+<div class="admin-container">
+  <header class="admin-header">
+    <div class="header-left">
+      <h1>Admin Panel</h1>
+      <p>Manage users and events for Family Hub</p>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-secondary" (click)="backToDashboard()">
+        Back to Dashboard
+      </button>
+    </div>
+  </header>
+
+  <div class="admin-content">
+    <!-- Navigation Tabs -->
+    <nav class="admin-nav">
+      <button 
+        class="nav-btn" 
+        [class.active]="activeTab === 'overview'"
+        (click)="setActiveTab('overview')">
+        Overview
+      </button>
+      <button 
+        class="nav-btn" 
+        [class.active]="activeTab === 'users'"
+        (click)="setActiveTab('users')">
+        Users
+      </button>
+      <button 
+        class="nav-btn" 
+        [class.active]="activeTab === 'events'"
+        (click)="setActiveTab('events')">
+        Events
+      </button>
+    </nav>
+
+    <!-- Messages -->
+    <div class="message success-message" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+    <div class="message error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Overview Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'overview'">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.totalUsers }}</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.adminUsers }}</div>
+          <div class="stat-label">Admin Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.totalEvents }}</div>
+          <div class="stat-label">Total Events</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ stats.activeEvents }}</div>
+          <div class="stat-label">Active Events</div>
+        </div>
+      </div>
+
+      <div class="recent-activity">
+        <h3>Recent Events</h3>
+        <div class="activity-list">
+          <div class="activity-item" *ngFor="let event of events.slice(0, 5)">
+            <div class="activity-info">
+              <div class="activity-title">{{ event.title }}</div>
+              <div class="activity-date">{{ formatDate(event.startTime) }}</div>
+            </div>
+            <div class="activity-type">{{ formatEventType(event.eventType) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'users'">
+      <div class="section-header">
+        <h2>User Management</h2>
+        <button class="btn btn-primary" (click)="toggleCreateUserForm()">
+          {{ showCreateUserForm ? 'Cancel' : 'Create User' }}
+        </button>
+      </div>
+
+      <!-- Create User Form -->
+      <div class="create-form" *ngIf="showCreateUserForm">
+        <h3>Create New User</h3>
+        <form (ngSubmit)="createUser()" class="user-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                [(ngModel)]="newUserRequest.username"
+                name="username"
+                class="form-control"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input
+                type="text"
+                id="name"
+                [(ngModel)]="newUserRequest.name"
+                name="name"
+                class="form-control"
+                required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                [(ngModel)]="newUserRequest.password"
+                name="password"
+                class="form-control"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="role">Role</label>
+              <select
+                id="role"
+                [(ngModel)]="newUserRequest.role"
+                name="role"
+                class="form-control">
+                <option *ngFor="let role of getUserRoles()" [value]="role">
+                  {{ formatEventType(role) }}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="toggleCreateUserForm()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+              Create User
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Users List -->
+      <div class="users-list">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td>{{ user.name }}</td>
+                <td>{{ user.username }}</td>
+                <td>
+                  <span class="role-badge" [class]="user.role.toLowerCase()">
+                    {{ formatEventType(user.role) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="user.active ? 'active' : 'inactive'">
+                    {{ user.active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ formatDate(user.createdAt || '') }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button 
+                      class="btn btn-sm btn-outline"
+                      (click)="toggleUserStatus(user)">
+                      {{ user.active ? 'Deactivate' : 'Activate' }}
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-danger"
+                      (click)="deleteUser(user)"
+                      [disabled]="user.id === currentUser?.id">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events Tab -->
+    <div class="tab-content" *ngIf="activeTab === 'events'">
+      <div class="section-header">
+        <h2>Event Management</h2>
+      </div>
+
+      <div class="events-list">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let event of events">
+                <td>{{ event.title }}</td>
+                <td>
+                  <span class="type-badge">
+                    {{ formatEventType(event.eventType) }}
+                  </span>
+                </td>
+                <td>{{ formatDate(event.startTime) }}</td>
+                <td>
+                  <span class="status-badge" [class]="event.status.toLowerCase()">
+                    {{ formatEventType(event.status) }}
+                  </span>
+                </td>
+                <td>{{ event.location || 'N/A' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button 
+                      class="btn btn-sm btn-danger"
+                      (click)="deleteEvent(event)">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner"></div>
+  </div>
+</div>

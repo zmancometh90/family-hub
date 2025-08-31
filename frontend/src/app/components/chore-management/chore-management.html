@@ -1,0 +1,237 @@
+<div class="chore-management-container">
+  <div class="header">
+    <div class="header-navigation">
+      <button type="button" class="btn btn-secondary" (click)="backToDashboard()">
+        ← Back to Dashboard
+      </button>
+      <h1>Chore Management</h1>
+      <button type="button" class="btn btn-primary" (click)="showCreateChoreForm()">
+        + Create New Chore
+      </button>
+    </div>
+  </div>
+
+  <div class="messages" *ngIf="errorMessage || successMessage">
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+      <button type="button" class="close-btn" (click)="clearMessages()">×</button>
+    </div>
+    <div class="success-message" *ngIf="successMessage">
+      {{ successMessage }}
+      <button type="button" class="close-btn" (click)="clearMessages()">×</button>
+    </div>
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div class="chore-form-overlay" *ngIf="showCreateForm">
+    <div class="chore-form">
+      <div class="form-header">
+        <h2>{{ editingChore ? 'Edit Chore' : 'Create New Chore' }}</h2>
+        <button type="button" class="close-btn" (click)="cancelForm()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveChore()" #choreFormRef="ngForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="title">Title *</label>
+            <input
+              type="text"
+              id="title"
+              [(ngModel)]="choreForm.title"
+              name="title"
+              required
+              class="form-control"
+              placeholder="Enter chore title">
+          </div>
+
+          <div class="form-group">
+            <label for="choreType">Type</label>
+            <select
+              id="choreType"
+              [(ngModel)]="choreForm.choreType"
+              name="choreType"
+              class="form-control">
+              <option *ngFor="let type of choreTypes" [value]="type">
+                {{ choreTypeLabels[type] }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="priority">Priority</label>
+            <select
+              id="priority"
+              [(ngModel)]="choreForm.priority"
+              name="priority"
+              class="form-control">
+              <option *ngFor="let priority of chorePriorities" [value]="priority">
+                {{ chorePriorityLabels[priority] }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="assignedTo">Assign To</label>
+            <select
+              id="assignedTo"
+              [(ngModel)]="choreForm.assignedToId"
+              name="assignedTo"
+              class="form-control">
+              <option value="">Unassigned</option>
+              <option *ngFor="let user of users" [value]="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dueDate">Due Date</label>
+            <input
+              type="date"
+              id="dueDate"
+              [(ngModel)]="choreForm.dueDate"
+              name="dueDate"
+              class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="estimatedDuration">Estimated Duration (minutes)</label>
+            <input
+              type="number"
+              id="estimatedDuration"
+              [(ngModel)]="choreForm.estimatedDurationMinutes"
+              name="estimatedDuration"
+              min="1"
+              class="form-control"
+              placeholder="e.g., 30">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              [(ngModel)]="choreForm.description"
+              name="description"
+              rows="3"
+              class="form-control"
+              placeholder="Enter chore description (optional)"></textarea>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <input
+              type="checkbox"
+              id="isRecurring"
+              [(ngModel)]="choreForm.isRecurring"
+              name="isRecurring"
+              class="checkbox-input">
+            <label for="isRecurring" class="checkbox-label">Recurring Chore</label>
+          </div>
+
+          <div class="form-group" *ngIf="choreForm.isRecurring">
+            <label for="recurrencePattern">Recurrence Pattern</label>
+            <input
+              type="text"
+              id="recurrencePattern"
+              [(ngModel)]="choreForm.recurrencePattern"
+              name="recurrencePattern"
+              class="form-control"
+              placeholder="e.g., Weekly, Daily, Monthly">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="cancelForm()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="!choreFormRef.form.valid || isLoading">
+            {{ editingChore ? 'Update Chore' : 'Create Chore' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Chores List -->
+  <div class="chores-list" *ngIf="!isLoading">
+    <div class="chores-header">
+      <h3>All Chores ({{ chores.length }})</h3>
+    </div>
+
+    <div class="chores-grid" *ngIf="chores.length > 0">
+      <div class="chore-card" *ngFor="let chore of chores; trackBy: trackByChoreId">
+        <div class="chore-header">
+          <div class="chore-title">
+            <h4>{{ chore.title }}</h4>
+            <span class="chore-type">{{ getChoreTypeLabel(chore.choreType) }}</span>
+          </div>
+          <div class="chore-actions">
+            <button type="button" class="btn btn-sm btn-outline" (click)="editChore(chore)">
+              Edit
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" (click)="deleteChore(chore)">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <div class="chore-details">
+          <div class="detail-row" *ngIf="chore.description">
+            <span class="detail-label">Description:</span>
+            <span class="detail-value">{{ chore.description }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Assigned to:</span>
+            <span class="detail-value">{{ getAssignedUserName(chore.assignedTo) }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.dueDate">
+            <span class="detail-label">Due Date:</span>
+            <span class="detail-value">{{ chore.dueDate }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="chore.estimatedDurationMinutes">
+            <span class="detail-label">Duration:</span>
+            <span class="detail-value">{{ chore.estimatedDurationMinutes }} minutes</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label">Priority:</span>
+            <span class="detail-value" [class]="getPriorityClass(chore.priority || '')">
+              {{ getChorePriorityLabel(chore.priority) }}
+            </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value" [class]="getStatusClass(chore.status || '')">
+              {{ getChoreStatusLabel(chore.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="chore-status-actions">
+          <label for="status-{{ chore.id }}">Update Status:</label>
+          <select
+            id="status-{{ chore.id }}"
+            [value]="chore.status"
+            (change)="updateChoreStatus(chore, $any($event.target).value)"
+            class="form-control status-select">
+            <option *ngFor="let status of choreStatuses" [value]="status">
+              {{ choreStatusLabels[status] }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-chores" *ngIf="chores.length === 0">
+      <p>No chores created yet. Click "Create New Chore" to get started.</p>
+    </div>
+  </div>
+</div>

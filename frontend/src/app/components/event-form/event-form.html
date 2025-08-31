@@ -1,0 +1,134 @@
+<div class="event-form-container">
+  <div class="form-header">
+    <h1>{{ isEditMode ? 'Edit Event' : 'Create New Event' }}</h1>
+    <p>{{ isEditMode ? 'Update your event details' : 'Add a new event to your family calendar' }}</p>
+  </div>
+
+  <div class="form-card">
+    <form (ngSubmit)="onSubmit()" class="event-form">
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="title">Event Title *</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            [(ngModel)]="eventRequest.title"
+            class="form-control"
+            placeholder="Enter event title"
+            required
+            [disabled]="isLoading">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="startTime">Start Time *</label>
+          <input
+            type="datetime-local"
+            id="startTime"
+            name="startTime"
+            [(ngModel)]="eventRequest.startTime"
+            class="form-control"
+            required
+            [disabled]="isLoading">
+        </div>
+
+        <div class="form-group">
+          <label for="endTime">End Time</label>
+          <input
+            type="datetime-local"
+            id="endTime"
+            name="endTime"
+            [(ngModel)]="eventRequest.endTime"
+            class="form-control"
+            [disabled]="isLoading">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="eventType">Event Type</label>
+          <select
+            id="eventType"
+            name="eventType"
+            [(ngModel)]="eventRequest.eventType"
+            class="form-control"
+            [disabled]="isLoading">
+            <option *ngFor="let type of eventTypes" [value]="type">
+              {{ formatEventType(type) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="location">Location</label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            [(ngModel)]="eventRequest.location"
+            class="form-control"
+            placeholder="Enter event location"
+            [disabled]="isLoading">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="eventRequest.description"
+            class="form-control textarea"
+            rows="4"
+            placeholder="Enter event description (optional)"
+            [disabled]="isLoading"></textarea>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="isRecurring"
+              name="isRecurring"
+              [(ngModel)]="eventRequest.isRecurring"
+              [disabled]="isLoading">
+            <label for="isRecurring">Recurring Event</label>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="eventRequest.isRecurring">
+          <label for="recurrencePattern">Recurrence Pattern</label>
+          <input
+            type="text"
+            id="recurrencePattern"
+            name="recurrencePattern"
+            [(ngModel)]="eventRequest.recurrencePattern"
+            class="form-control"
+            placeholder="e.g., Daily, Weekly, Monthly"
+            [disabled]="isLoading">
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isLoading">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          <span *ngIf="isLoading">{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+          <span *ngIf="!isLoading">{{ isEditMode ? 'Update Event' : 'Create Event' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

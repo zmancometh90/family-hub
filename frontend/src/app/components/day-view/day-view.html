@@ -1,0 +1,97 @@
+<div class="day-view-container">
+  <div class="day-view-header">
+    <div class="header-navigation">
+      <button type="button" class="btn btn-secondary" (click)="backToCalendar()">
+        ← Back to Calendar
+      </button>
+      <div class="date-navigation">
+        <button type="button" class="btn btn-outline" (click)="navigateToPreviousDay()">
+          ← Previous Day
+        </button>
+        <button type="button" class="btn btn-outline" (click)="navigateToToday()">
+          Today
+        </button>
+        <button type="button" class="btn btn-outline" (click)="navigateToNextDay()">
+          Next Day →
+        </button>
+      </div>
+    </div>
+    
+    <div class="day-header">
+      <h1>{{ formatDate() }}</h1>
+      <p *ngIf="dayEvents.length === 0" class="no-events">No events scheduled for this day</p>
+      <p *ngIf="dayEvents.length === 1" class="event-count">1 event scheduled</p>
+      <p *ngIf="dayEvents.length > 1" class="event-count">{{ dayEvents.length }} events scheduled</p>
+    </div>
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading events...</p>
+  </div>
+
+  <div class="day-schedule" *ngIf="!isLoading">
+    <div class="time-grid">
+      <!-- Time labels column -->
+      <div class="time-labels">
+        <div class="hour-label" *ngFor="let hour of hours">
+          <span class="hour-text">{{ formatHour(hour) }}</span>
+          <button 
+            type="button" 
+            class="add-event-btn" 
+            (click)="addEventAtHour(hour)"
+            title="Add event at {{ formatHour(hour) }}">
+            +
+          </button>
+        </div>
+      </div>
+      
+      <!-- Timeline grid -->
+      <div class="timeline-container">
+        <!-- Hour grid lines -->
+        <div class="hour-grid-lines">
+          <div class="hour-line" *ngFor="let hour of hours"></div>
+        </div>
+        
+        <!-- 30-minute dashed lines -->
+        <div class="half-hour-grid-lines">
+          <div 
+            class="half-hour-container" 
+            *ngFor="let hour of hours">
+            <div class="half-hour-line is-half-hour"></div>
+          </div>
+        </div>
+        
+        <!-- Current time indicator -->
+        <div 
+          class="current-time-line" 
+          *ngIf="isToday()"
+          [style.top.px]="getCurrentTimeTop()"></div>
+        
+        <!-- Events positioned absolutely -->
+        <div class="events-layer">
+          <div 
+            class="continuous-event"
+            *ngFor="let event of dayEvents; trackBy: trackByEventId"
+            [style.top.px]="getEventTop(event)"
+            [style.height.px]="getEventHeight(event)"
+            [style.left.px]="getEventLeft(event)"
+            [style.width.px]="getEventWidth(event)"
+            [style.background-color]="getEventColor(event.eventType)"
+            [style.border-left-color]="getEventColor(event.eventType)"
+            [ngClass]="getDynamicStatusClass(event)"
+            (click)="viewEvent(event)">
+            
+            <div class="event-content">
+              <div class="event-title">{{ event.title }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
